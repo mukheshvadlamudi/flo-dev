@@ -62,6 +62,15 @@ npm run build
 - **Finding rule** (an issue at a code location): add a `Rule` to `packages/engine/src/core/rules/*.ts`.
 - **Checklist item** (a safeguard that should exist): add a `CheckDef` to `packages/engine/src/core/checklist/*.ts`. Use `appliesTo` and `when` so it only runs where it makes sense, and `live` if the deployed site can confirm it.
 
+## Protecting Flo from being copied
+
+- **Keep this repository private.** Everything below assumes the source isn't public.
+- The engine (rules, checks, prompts, scoring) runs only on the server. It's never bundled for the browser, and production builds ship no source maps.
+- API responses are `private, no-store` and `noindex`. Report reads and downloads are rate-limited per IP so reports can't be bulk-scraped, and report IDs are unguessable UUIDs.
+- Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` (Cloudflare Turnstile, free) to require a usually-invisible human check on scans and enquiries. This stops scripts using Flo as a free scanning API.
+- The Terms forbid reverse-engineering, scraping and competitive use, and `LICENSE` is proprietary (all rights reserved).
+- What can't be prevented: anyone can see the public pages and the content of reports they're given. The defensible parts are the engine and the speed you improve it.
+
 ## Security notes for running Flo itself
 
 - Scans run in-process with a 3-scan concurrency cap and per-IP rate limits (in-memory; use Redis or Upstash with several instances).

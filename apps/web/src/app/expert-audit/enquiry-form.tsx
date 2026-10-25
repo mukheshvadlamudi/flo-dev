@@ -2,7 +2,8 @@
 
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { Turnstile } from "@/components/turnstile";
 import { cn } from "@/lib/utils";
 
 const PLANS = [
@@ -17,6 +18,8 @@ export function EnquiryForm() {
   const [plan, setPlan] = useState<string>(PLANS.some((p) => p.id === params.get("plan")) ? params.get("plan")! : "audit");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [human, setHuman] = useState("");
+  const onHuman = useCallback((t: string) => setHuman(t), []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,7 +29,7 @@ export function EnquiryForm() {
     const res = await fetch("/api/enquiry", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name: form.get("name"), email: form.get("email"), repo: form.get("repo"), message: form.get("message"), plan, reportId: params.get("report") ?? "" }),
+      body: JSON.stringify({ name: form.get("name"), email: form.get("email"), repo: form.get("repo"), message: form.get("message"), plan, reportId: params.get("report") ?? "", human: human || undefined }),
     });
     if (res.ok) {
       router.push(`/thank-you?plan=${plan}`);
@@ -65,6 +68,7 @@ export function EnquiryForm() {
         <span className="mb-1.5 block text-xs font-medium">What do you need?</span>
         <textarea name="message" rows={4} maxLength={2000} placeholder="Launch date, what's broken, anything we should know." className={cn(input, "h-auto py-3")} />
       </label>
+      <Turnstile onToken={onHuman} />
       {error && (
         <p role="alert" className="text-sm text-critical">
           {error}

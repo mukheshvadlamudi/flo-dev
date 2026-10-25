@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { parseGitHubUrl } from "@flo/engine";
+import { verifyHuman } from "@/lib/bot-check";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { canStart, startScan } from "@/lib/runner";
 
@@ -12,6 +13,7 @@ const Body = z
     token: z.string().trim().max(300).optional(),
     liveUrl: z.string().trim().max(300).optional(),
     sample: z.boolean().optional(),
+    human: z.string().max(4096).optional(),
     profile: z
       .object({
         expectedUsers: z.number().int().min(0).max(100_000_000).optional(),
@@ -40,6 +42,7 @@ export async function POST(req: Request) {
     const msg = err instanceof z.ZodError ? err.issues[0]?.message : "Invalid request.";
     return NextResponse.json({ error: msg }, { status: 400 });
   }
+  if (!(await verifyHuman(body.human, clientIp(req)))) return NextResponse.json({ error: "Please complete the quick human check and try again." }, { status: 403 });
   if (!canStart()) return NextResponse.json({ error: "Flo is busy with other scans. Try again in a minute." }, { status: 503 });
 
   const id = startScan({ repo: body.repo, token: body.token || undefined, liveUrl: body.liveUrl, sample: body.sample, profile: body.profile });

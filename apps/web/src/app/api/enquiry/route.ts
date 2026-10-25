@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { verifyHuman } from "@/lib/bot-check";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { saveEnquiry } from "@/lib/store";
 
@@ -12,12 +13,15 @@ const Body = z.object({
   plan: z.enum(["audit", "sprint", "retainer"]).default("audit"),
   message: z.string().trim().max(2000).optional().default(""),
   reportId: z.string().max(60).optional().default(""),
+  human: z.string().max(4096).optional(),
 });
 
 export async function POST(req: Request) {
   if (!rateLimit(`enquiry:${clientIp(req)}`, 5, 60 * 60 * 1000).ok) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid form." }, { status: 400 });
-  await saveEnquiry(parsed.data);
+  const { human, ...enquiry } = parsed.data;
+  if (!(await verifyHuman(human, clientIp(req)))) return NextResponse.json({ error: "Please complete the quick human check and try again." }, { status: 403 });
+  await saveEnquiry(enquiry);
   return NextResponse.json({ ok: true });
 }

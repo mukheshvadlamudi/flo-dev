@@ -2,8 +2,13 @@
   "name": "flo",
   "private": true,
   "description": "Flo: production-readiness audits for vibe-coded apps.",
-  "workspaces": ["packages/*", "apps/*"],
-  "engines": { "node": ">=20" },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "npm run build -w @flo/engine && npm run build -w @flo/web",
     "dev": "npm run build -w @flo/engine && npm run dev -w @flo/web",
@@ -11,5 +16,6 @@
     "test": "npm test -w @flo/engine",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "scan": "npm run scan -w @flo/engine --"
-  }
+  },
+  "license": "UNLICENSED"
 }

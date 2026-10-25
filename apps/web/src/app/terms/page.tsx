@@ -9,6 +9,10 @@ export default function Terms() {
       <p>By using Flo you agree to these terms. Have them reviewed by a lawyer before relying on them for your jurisdiction.</p>
       <h2>Only scan what you own</h2>
       <p>Only submit repositories and websites you own or have written permission to test. Scanning other people's apps without permission is not allowed.</p>
+      <h2>Acceptable use</h2>
+      <p>You may not copy, reverse-engineer, decompile or extract Flo&apos;s detection rules, checks, prompts or scoring; scrape the site or reports by automated means; resell Flo&apos;s output as your own scanning service; or use Flo to build a competing product. We may suspend access and pursue remedies for any of these.</p>
+      <h2>Ownership</h2>
+      <p>Flo&apos;s software, rules, checklists, design and content are owned by Flo and protected by copyright. Your reports are yours to use for your own apps and your own clients.</p>
       <h2>The report is guidance, not a guarantee</h2>
       <p>Automated analysis can miss issues and report false positives. A clean report does not mean an app is secure. Paid audits include human verification but are still limited to the agreed scope.</p>
       <h2>Paid services and refunds</h2>

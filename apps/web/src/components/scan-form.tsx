@@ -2,9 +2,10 @@
 
 import { ArrowRight, ChevronDown, Globe, KeyRound, Loader2, Sparkles } from "lucide-react";
 import { GithubIcon } from "./github-icon";
+import { Turnstile } from "./turnstile";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const KINDS = [
@@ -35,6 +36,8 @@ export function ScanForm({ compact = false }: { compact?: boolean }) {
   const [gdpr, setGdpr] = useState(false);
   const [busy, setBusy] = useState<"repo" | "sample" | null>(null);
   const [error, setError] = useState("");
+  const [human, setHuman] = useState("");
+  const onHuman = useCallback((t: string) => setHuman(t), []);
 
   async function submit(sample: boolean) {
     setError("");
@@ -49,6 +52,7 @@ export function ScanForm({ compact = false }: { compact?: boolean }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           sample,
+          human: human || undefined,
           repo: sample ? undefined : repo.trim(),
           token: token.trim() || undefined,
           liveUrl: liveUrl.trim() || undefined,
@@ -157,6 +161,7 @@ export function ScanForm({ compact = false }: { compact?: boolean }) {
           No repo handy? Scan a sample Lovable app
         </button>
       </div>
+      <Turnstile onToken={onHuman} />
       <AnimatePresence>
         {error && (
           <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} role="alert" className="mt-2 px-1 text-[13px] text-critical">
