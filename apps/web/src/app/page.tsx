@@ -14,7 +14,7 @@ import { SITE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export const metadata = {
-  title: { absolute: "Flo — make your vibe-coded app production-ready" },
+  title: { absolute: "Flo: make your vibe-coded app production-ready" },
   description: SITE.description,
 };
 
@@ -75,7 +75,7 @@ export default async function Home() {
           </Reveal>
           <Reveal delay={0.1}>
             <p className="mx-auto mt-6 max-w-2xl text-[17px] leading-relaxed text-pretty text-muted sm:text-lg">
-              Connect your repo. In about a minute Flo finds the security holes, bugs and missing production basics in your code, then hands you an architecture sized to your goals and a step-by-step plan to launch — no patch-work.
+              Connect your repo. In about a minute Flo finds the security holes, bugs and missing production basics in your code, then hands you an architecture sized to your goals and a step-by-step plan to launch. No patch-work.
             </p>
           </Reveal>
           <Reveal delay={0.15} className="mt-10 flex w-full justify-center">
@@ -143,7 +143,7 @@ export default async function Home() {
             </div>
           </div>
           <p className="mt-4 text-center text-[13px] text-faint">
-            Real output from scanning a sample Lovable app — not a mockup.{" "}
+            Real output from scanning a sample Lovable app, not a mockup.{" "}
             <Link href="/sample" className="text-muted underline-offset-4 hover:text-fg hover:underline">
               Open the full sample report →
             </Link>

@@ -54,13 +54,13 @@ export const PERFORMANCE_CHECKS: CheckDef[] = [
     area: "Performance",
     title: "Compressed responses (gzip / Brotli)",
     priority: "should",
-    relevance: "Compression shrinks HTML, JS and JSON API payloads by 60–80% — the cheapest speed-up there is, especially on mobile data.",
+    relevance: "Compression shrinks HTML, JS and JSON API payloads by 60–80%, the cheapest speed-up there is, especially on mobile data.",
     howTo: "Managed hosts do this automatically. On Express add `app.use(compression())`; on nginx enable `gzip on; brotli on;` for text, JS, CSS and JSON.",
     evaluate(ctx) {
       if (managedEdge(ctx)) return pass(`${managedEdge(ctx)} compresses responses automatically.`);
       const d = dep(ctx, "compression", "@fastify/compress", "hono") ?? grep(ctx, /gzip on|brotli|compress\(\)/i, ANY_FILE, 1)[0]?.file;
       if (d) return pass(`Compression is configured (${d}).`);
-      return ctx.type.hasBackend ? warn("No compression middleware found on the server.") : unknown("Depends on your host — check the live site.");
+      return ctx.type.hasBackend ? warn("No compression middleware found on the server.") : unknown("Depends on your host. Check the live site.");
     },
     live(probe) {
       const enc = probe.headers["content-encoding"];
@@ -81,7 +81,7 @@ export const PERFORMANCE_CHECKS: CheckDef[] = [
       const lazy = grep(ctx, /React\.lazy\(|\blazy\(\s*\(\)\s*=>\s*import|import\(\s*["'`]\.|defineAsyncComponent/, CODE_FILE);
       const routes = ctx.structure.routes.length;
       if (lazy.length) return pass(`Routes/components are lazy-loaded (${plural(lazy.length, "dynamic import")}).`, lazy);
-      return routes > 3 ? fail(`${plural(routes, "route")} are bundled into one file; nothing is lazy-loaded.`) : warn("No lazy loading yet — fine while the app is small.");
+      return routes > 3 ? fail(`${plural(routes, "route")} are bundled into one file; nothing is lazy-loaded.`) : warn("No lazy loading yet, which is fine while the app is small.");
     },
   },
   {
@@ -169,7 +169,7 @@ export const PERFORMANCE_CHECKS: CheckDef[] = [
     title: "No N+1 database queries",
     when: backend,
     priority: "should",
-    relevance: "Querying inside a loop turns one page load into dozens of database round-trips — invisible with test data, painful with real users.",
+    relevance: "Querying inside a loop turns one page load into dozens of database round-trips: invisible with test data, painful with real users.",
     howTo: "Batch with `.in('id', ids)`, embed relations (`select('*, author:profiles(*)')`), use Prisma `include`, or a DataLoader.",
     evaluate(ctx) {
       const f = findingsFor(ctx, "perf.n-plus-one");
@@ -235,7 +235,7 @@ export const PERFORMANCE_CHECKS: CheckDef[] = [
       const pooled = grep(ctx, /pooler\.supabase\.com|:6543|pgbouncer=true|prisma:\/\/|accelerate|@neondatabase\/serverless|new Pool\(|createPool\(|max:\s*\d+/i, ANY_FILE, 3);
       if (pooled.length) return pass("A connection pool / pooler is configured.", pooled);
       const perRequest = grep(ctx, /new (PrismaClient|Client)\(/, CODE_FILE, 5);
-      if (perRequest.length > 1) return fail(`Database clients are created in ${plural(perRequest.length, "place")} — likely one per request.`, perRequest);
+      if (perRequest.length > 1) return fail(`Database clients are created in ${plural(perRequest.length, "place")}, likely one per request.`, perRequest);
       return warn(`Using ${direct} directly with no pooler URL found.`, perRequest);
     },
   },
@@ -268,7 +268,7 @@ export const PERFORMANCE_CHECKS: CheckDef[] = [
       const d = dep(ctx, "@upstash/redis", "ioredis", "redis", "@vercel/kv", "lru-cache", "node-cache", "keyv", "@keyv/redis");
       const n = grep(ctx, /unstable_cache|["']use cache["']|materialized view|KV\.(get|put)|caches\.default/i, ANY_FILE, 2);
       if (d || n.length) return pass(`Server-side cache in use${d ? ` (${d})` : ""}.`, n);
-      return ctx.profile.expectedUsers < 5000 ? warn("No server-side cache yet — fine at your current scale, plan it before growth.") : fail("No server-side cache for expensive queries.");
+      return ctx.profile.expectedUsers < 5000 ? warn("No server-side cache yet. That's fine at your current scale, plan it before growth.") : fail("No server-side cache for expensive queries.");
     },
   },
   {
@@ -326,7 +326,7 @@ export const PERFORMANCE_CHECKS: CheckDef[] = [
     when: frontend,
     priority: "later",
     relevance: "Minification removes whitespace and dead code, typically 30–50% smaller bundles.",
-    howTo: "Use a bundler (Vite, Next.js, Astro) for production builds — they minify by default. Don't ship hand-written, unminified `<script src=\"app.js\">` files.",
+    howTo: "Use a bundler (Vite, Next.js, Astro) for production builds. They minify by default. Don't ship hand-written, unminified `<script src=\"app.js\">` files.",
     evaluate(ctx) {
       const bundler = ctx.stack.frameworks.find((f) => ["Next.js", "Vite", "Remix", "Nuxt", "SvelteKit", "Astro", "Expo / React Native"].includes(f)) ?? dep(ctx, "webpack", "esbuild", "parcel", "rollup");
       if (bundler) return pass(`${bundler} minifies production builds.`);

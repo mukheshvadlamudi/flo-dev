@@ -12,10 +12,10 @@ const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
-  title: { default: "Flo — make your vibe-coded app production-ready", template: "%s · Flo" },
+  title: { default: "Flo: make your vibe-coded app production-ready", template: "%s · Flo" },
   description: SITE.description,
   applicationName: "Flo",
-  openGraph: { type: "website", siteName: "Flo", title: "Flo — make your vibe-coded app production-ready", description: SITE.description, url: SITE.url },
+  openGraph: { type: "website", siteName: "Flo", title: "Flo: make your vibe-coded app production-ready", description: SITE.description, url: SITE.url },
   twitter: { card: "summary_large_image" },
   alternates: { canonical: "/" },
 };

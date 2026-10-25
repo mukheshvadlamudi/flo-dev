@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Flo — make your vibe-coded app production-ready";
+export const alt = "Flo: make your vibe-coded app production-ready";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

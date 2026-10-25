@@ -7,7 +7,7 @@ import { cloneGitHub, parseGitHubUrl, resolveLocal } from "./core/source.js";
 import { toMarkdown } from "./core/report/markdown.js";
 import type { ProjectKind } from "./core/types.js";
 
-const HELP = `flo — production-readiness audit for vibe-coded apps
+const HELP = `flo: production-readiness audit for vibe-coded apps
 
 Usage:
   flo <path | github-url> [options]
@@ -70,7 +70,7 @@ async function main() {
     if (values.json) await writeFile(values.json, JSON.stringify(report, null, 2));
     if (values.md) await writeFile(values.md, md);
     if (!values.json && !values.md) console.log(md);
-    else console.error(`\nScore ${report.scores.overall}/100 (${report.scores.grade}) — ${report.findings.length} findings, ${report.checklist.filter((c) => c.status === "fail").length} failing checks.`);
+    else console.error(`\nScore ${report.scores.overall}/100 (${report.scores.grade}). ${report.findings.length} findings, ${report.checklist.filter((c) => c.status === "fail").length} failing checks.`);
     if (report.ai.error) console.error(`note: ${report.ai.error}`);
   } finally {
     await source.cleanup();

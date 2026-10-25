@@ -69,7 +69,7 @@ export function planArchitecture(stack: Stack, type: ProjectType, profile: UserP
   }
 
   if (stack.auth.length || type.kinds.includes("saas-app")) {
-    c.push({ layer: "Auth", current: listOr(stack.auth, "none detected"), recommended: stack.auth.length ? `${stack.auth[0]} with server-side session checks and HttpOnly cookies` : isSupabase ? "Supabase Auth with @supabase/ssr cookies" : "Clerk, Better Auth or Auth.js — never hand-rolled", why: "Auth is the most attacked part of any app; use a provider and verify the session on the server on every request.", change: stack.auth.length ? "keep" : "add" });
+    c.push({ layer: "Auth", current: listOr(stack.auth, "none detected"), recommended: stack.auth.length ? `${stack.auth[0]} with server-side session checks and HttpOnly cookies` : isSupabase ? "Supabase Auth with @supabase/ssr cookies" : "Clerk, Better Auth or Auth.js. Never hand-rolled", why: "Auth is the most attacked part of any app; use a provider and verify the session on the server on every request.", change: stack.auth.length ? "keep" : "add" });
   }
 
   if (stack.database.length || type.hasBackend) {
@@ -85,7 +85,7 @@ export function planArchitecture(stack: Stack, type: ProjectType, profile: UserP
   c.push({ layer: "Caching", current: hasCache ? "Redis" : failed("perf.api-caching") ? "none" : "client-side query cache", recommended: big ? "TanStack Query on the client + Redis (Upstash) for expensive queries + CDN caching for public pages" : "TanStack Query on the client and Cache-Control headers on public data; add Redis later", why: "Most screens re-request identical data. Caching is cheaper than scaling the database.", change: big && !hasCache ? "add" : tier === "prototype" ? "later" : "add" });
 
   if (stack.ai.length || stack.payments.length || big) {
-    c.push({ layer: "Background jobs", current: failed("rel.background-jobs") ? "inline in requests" : "—", recommended: "Inngest / Trigger.dev / QStash (serverless) or BullMQ (containers) with retries", why: "Emails, AI generations and webhook processing shouldn't make users wait or be lost on timeouts.", change: big ? "add" : "later" });
+    c.push({ layer: "Background jobs", current: failed("rel.background-jobs") ? "inline in requests" : "none needed yet", recommended: "Inngest / Trigger.dev / QStash (serverless) or BullMQ (containers) with retries", why: "Emails, AI generations and webhook processing shouldn't make users wait or be lost on timeouts.", change: big ? "add" : "later" });
   }
 
   if (type.hasBackend) {
@@ -100,7 +100,7 @@ export function planArchitecture(stack: Stack, type: ProjectType, profile: UserP
   if (structure.dataAccessInUi.length > 2) antiPatterns.push({ title: "Database queries scattered through UI components", detail: `${structure.dataAccessInUi.length} components query the database directly. Centralise them in a data layer so rules live in one place.`, refs: structure.dataAccessInUi.slice(0, 4) });
   if (structure.godFiles.length) antiPatterns.push({ title: "Oversized files", detail: `${structure.godFiles.length} files exceed 400 lines; AI edits to these cause regression loops.`, refs: structure.godFiles.slice(0, 4).map((g) => ({ file: g.path, snippet: `${g.lines} lines` })) });
   if (findings.some((f) => f.ruleId === "db.client-sets-privileged-field" || f.ruleId === "supabase.service-role-exposed")) antiPatterns.push({ title: "Trusting the browser with privileged decisions", detail: "Billing state or admin access is decided in client code. Move those writes to the server.", refs: findings.filter((f) => f.ruleId === "db.client-sets-privileged-field" || f.ruleId === "supabase.service-role-exposed").slice(0, 3).map((f) => ({ file: f.file ?? "", line: f.line, snippet: f.snippet })) });
-  if (structure.duplicateBlocks.length > 3) antiPatterns.push({ title: "Copy-paste patches", detail: `${structure.duplicateBlocks.length} duplicated blocks — typical of fixes applied by prompting instead of refactoring.`, refs: structure.duplicateBlocks.slice(0, 3).map((d) => ({ file: d.a, line: d.aLine, snippet: `duplicated in ${d.b}` })) });
+  if (structure.duplicateBlocks.length > 3) antiPatterns.push({ title: "Copy-paste patches", detail: `${structure.duplicateBlocks.length} duplicated blocks, typical of fixes applied by prompting instead of refactoring.`, refs: structure.duplicateBlocks.slice(0, 3).map((d) => ({ file: d.a, line: d.aLine, snippet: `duplicated in ${d.b}` })) });
   if (!structure.layers.find((l) => l.name === "Database migrations")?.present && stack.database.length) antiPatterns.push({ title: "Schema lives only in the dashboard", detail: "Without migrations in git, nobody can review or reproduce database changes.", refs: [] });
 
   return { tier, summary: TIER_SUMMARY[tier], components: c, antiPatterns, folderStructure: folderTree(stack, type), author: "rules" };
@@ -123,7 +123,7 @@ function folderTree(stack: Stack, type: ProjectType): string {
 │  └─ auth.ts             # getUser() / requireUser()
 ├─ lib/                   # env.ts (zod-validated), utils, clients
 └─ types/                 # generated DB types, shared zod schemas
-supabase/migrations/      # or prisma/ — schema in git
+supabase/migrations/      # or prisma/: schema in git
 tests/ (unit)  e2e/ (Playwright)`;
   }
   if (type.hasFrontend) {

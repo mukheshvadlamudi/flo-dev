@@ -37,7 +37,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     when: supabase,
     priority: "must",
     relevance: "Your frontend talks to Supabase directly with the public anon key, so RLS policies are the only thing protecting your data.",
-    howTo: "Enable RLS on every public table and write ownership policies (`auth.uid() = user_id`). Then log out and try reading each table with the anon key — every request should come back empty or 401.",
+    howTo: "Enable RLS on every public table and write ownership policies (`auth.uid() = user_id`). Then log out and try reading each table with the anon key: every request should come back empty or 401.",
     evaluate(ctx) {
       const sql = ctx.project.files.some((f) => f.path.endsWith(".sql"));
       if (!sql) return unknown("No SQL migrations in the repo, so RLS can't be verified from code. Pull them with `supabase db pull` so they're versioned and checkable.");
@@ -49,7 +49,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     area: "Security",
     title: "Secrets kept out of code and the browser",
     priority: "must",
-    relevance: "Leaked keys are the most common — and most expensive — vibe-coding incident: drained AI credits, stolen data, fraudulent charges.",
+    relevance: "Leaked keys are the most common and most expensive vibe-coding incident: drained AI credits, stolen data, fraudulent charges.",
     howTo: "Rotate any leaked key, store secrets in your host's env settings, read them only in server code, and enable GitHub secret scanning + push protection.",
     evaluate: (ctx) =>
       fromFindings(ctx, ["secrets.hardcoded", "supabase.service-role-exposed", "env.secret-in-public-var", "ai.sdk-in-browser", "auth.hardcoded-jwt-secret"], "No secrets found in code or in browser-exposed variables.", (n) => `${plural(n, "secret exposure")} found.`),
@@ -59,7 +59,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     area: "Security",
     title: ".env files not committed",
     priority: "must",
-    relevance: "A committed .env file puts every credential in git history forever — deleting the file later doesn't remove it.",
+    relevance: "A committed .env file puts every credential in git history forever. Deleting the file later doesn't remove it.",
     howTo: "Add `.env*` (but not `.env.example`) to .gitignore, `git rm --cached .env`, rotate the keys inside it, and purge history with git-filter-repo if the repo was ever shared.",
     evaluate(ctx) {
       const committed = ctx.project.allPaths.filter((p) => /(^|\/)\.env(\.(local|production|prod|development|dev|staging))?$/.test(p));
@@ -76,7 +76,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     title: "Every API route checks the user",
     when: backend,
     priority: "must",
-    relevance: "Hiding a button in the UI doesn't protect anything — anyone can call your API directly with curl.",
+    relevance: "Hiding a button in the UI doesn't protect anything. Anyone can call your API directly with curl.",
     howTo: "Verify the session at the top of every handler (or in shared middleware), return 401 when it's missing, and scope every query to the authenticated user's id.",
     evaluate: (ctx) => fromFindings(ctx, ["auth.unprotected-api-route", "auth.jwt-not-verified", "db.client-sets-privileged-field", "db.mass-assignment"], "Server routes check the session before changing data.", (n) => `${plural(n, "route")} change data without a reliable auth check.`),
   },
@@ -92,7 +92,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
       const r = fromFindings(ctx, ["payments.webhook-unverified", "payments.client-controlled-amount"], "Webhooks verify signatures and amounts are set on the server.", (n) => `${plural(n, "payment flaw")} found.`);
       if (r.status !== "pass") return r;
       const webhook = grep(ctx, /constructEvent|webhook/i, CODE_FILE, 1);
-      return webhook.length ? r : warn("Payments are integrated but no webhook handler was found — access may be granted from the client-side redirect, which users can fake.");
+      return webhook.length ? r : warn("Payments are integrated but no webhook handler was found, so access may be granted from the client-side redirect, which users can fake.");
     },
   },
   {
@@ -125,7 +125,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
       const d = dep(ctx, "zod", "valibot", "yup", "joi", "@sinclair/typebox", "class-validator", "superstruct", "arktype");
       const used = grep(ctx, /\.(parse|safeParse|validate)\(|z\.object\(/, (f) => CODE_FILE(f) && !f.clientSide, 2);
       if (d && used.length) return pass(`Server code validates input with ${d}.`, used);
-      if (d) return warn(`${d} is installed but only used in the browser — the server trusts its input.`);
+      if (d) return warn(`${d} is installed but only used in the browser, so the server trusts its input.`);
       return fail("No input validation library is used.");
     },
   },
@@ -176,8 +176,8 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     evaluate(ctx) {
       const refs = paths(ctx, /(^|\/)(supabase\/migrations|prisma\/migrations|drizzle|migrations|alembic|db\/migrate)\//);
       if (refs.length) return pass(`${plural(ctx.project.allPaths.filter((p) => /migrations?\/.+\.(sql|ts|js|py|rb)$/.test(p)).length, "migration file")} committed.`, refs.slice(0, 2));
-      if (ctx.stack.database.some((d) => d.startsWith("Firebase"))) return na("Firestore is schemaless — keep security rules in the repo instead.");
-      return fail("No migrations in the repo — the schema lives only in the database.");
+      if (ctx.stack.database.some((d) => d.startsWith("Firebase"))) return na("Firestore is schemaless. Keep security rules in the repo instead.");
+      return fail("No migrations in the repo, so the schema lives only in the database.");
     },
   },
   {
@@ -190,7 +190,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     howTo: (ctx) => (supabase(ctx) ? "Supabase Free has no downloadable backups. Upgrade to Pro (daily backups) or add PITR, and schedule a `supabase db dump` to object storage. Do a test restore into a fresh project once." : "Enable automated daily backups with point-in-time recovery on your database provider, and test a restore into a scratch database."),
     evaluate(ctx) {
       const refs = grep(ctx, /pg_dump|db dump|backup/i, (f) => /\.(ya?ml|sh|ts|js|json)$/.test(f.path), 2);
-      return refs.length ? pass("A backup job is defined in the repo.", refs) : unknown("Backups are configured in your database dashboard, not the code — confirm they're on and test a restore.");
+      return refs.length ? pass("A backup job is defined in the repo.", refs) : unknown("Backups are configured in your database dashboard, not the code. Confirm they're on and test a restore.");
     },
   },
   {
@@ -227,7 +227,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     area: "Reliability",
     title: "Error tracking (Sentry or similar)",
     priority: "must",
-    relevance: "Without error tracking you find out about bugs from angry customers — or never, because they just leave.",
+    relevance: "Without error tracking you find out about bugs from angry customers, or never, because they just leave.",
     howTo: "Install Sentry (`npx @sentry/wizard@latest -i nextjs` / `-i reactNative`, or `@sentry/react`), upload source maps, and alert on new issues.",
     evaluate(ctx) {
       const d = dep(ctx, "@sentry/*", "@bugsnag/*", "@highlight-run/*", "logrocket", "@rollbar/*", "rollbar", "@datadog/browser-rum", "posthog-js", "@honeybadger-io/*");
@@ -244,7 +244,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     howTo: (ctx) => (ctx.stack.frameworks.includes("Next.js") ? "Add `app/error.tsx` and `app/global-error.tsx` with a friendly message and a retry button; report errors to Sentry inside them." : "Wrap routes in `<ErrorBoundary fallback={<ErrorScreen />}>` from `react-error-boundary`."),
     evaluate(ctx) {
       const refs = [...paths(ctx, /(^|\/)app\/(.*\/)?(global-)?error\.(t|j)sx$/), ...grep(ctx, /ErrorBoundary|componentDidCatch|errorElement=/, UI_FILE, 2)];
-      return refs.length ? pass("Error boundaries are in place.", refs) : fail("No error boundaries — one crash blanks the page.");
+      return refs.length ? pass("Error boundaries are in place.", refs) : fail("No error boundaries, so one crash blanks the page.");
     },
   },
   {
@@ -266,7 +266,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     title: "Timeouts on external calls",
     when: (ctx) => ctx.type.hasBackend && grep(ctx, /\bfetch\(|axios/, (f) => CODE_FILE(f) && !f.clientSide, 1).length > 0,
     priority: "should",
-    relevance: "A slow third-party API without a timeout ties up your server (or serverless function) until it's killed — and you pay for the wait.",
+    relevance: "A slow third-party API without a timeout ties up your server (or serverless function) until it's killed, and you pay for the wait.",
     howTo: "Pass `signal: AbortSignal.timeout(10_000)` to fetch (or `timeout` to axios), and retry idempotent calls with backoff.",
     evaluate(ctx) {
       const refs = grep(ctx, /AbortSignal\.timeout|AbortController|timeout\s*:/, (f) => CODE_FILE(f) && !f.clientSide, 2);
@@ -280,7 +280,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     when: (ctx) => ctx.type.hasBackend && (ctx.stack.ai.length > 0 || grep(ctx, /sendEmail|resend\.emails|sgMail|nodemailer|transporter\.sendMail/i, CODE_FILE, 1).length > 0),
     priority: (ctx) => (ctx.profile.expectedUsers >= 10_000 ? "should" : "later"),
     relevance: "Emails, AI generations and webhooks done inside the request make users wait, and are lost when the request times out.",
-    howTo: "Move them to a queue: Inngest, Trigger.dev, QStash, Supabase Queues/pg_cron, or BullMQ on Redis — with retries and a dead-letter view.",
+    howTo: "Move them to a queue: Inngest, Trigger.dev, QStash, Supabase Queues/pg_cron, or BullMQ on Redis, with retries and a dead-letter view.",
     evaluate(ctx) {
       const d = dep(ctx, "inngest", "@trigger.dev/sdk", "@upstash/qstash", "bullmq", "bull", "pg-boss", "graphile-worker", "@vercel/functions", "celery");
       return d ? pass(`Background jobs run with ${d}.`) : warn("Slow work (email/AI) runs inline in requests.");
@@ -298,7 +298,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     howTo: "Use pino (or your platform's logger) to log JSON with `userId`, `requestId` and timing, ship it to Axiom/Better Stack/Logtail, and never log secrets.",
     evaluate(ctx) {
       const d = dep(ctx, "pino", "winston", "@logtail/*", "@axiomhq/*", "next-axiom", "bunyan", "consola", "@opentelemetry/*", "structlog");
-      return d ? pass(`Structured logging with ${d.replace("*", "…")}.`) : warn("Only console.log — no structured, searchable logs.");
+      return d ? pass(`Structured logging with ${d.replace("*", "…")}.`) : warn("Only console.log, no structured, searchable logs.");
     },
   },
   {
@@ -310,7 +310,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     howTo: "Add a free monitor (Better Stack, UptimeRobot, Checkly) on the home page and `/api/health`, alerting to email/Slack/WhatsApp.",
     evaluate(ctx) {
       const refs = grep(ctx, /checkly|uptimerobot|betteruptime|betterstack|statuspage|instatus/i, ANY_FILE, 1);
-      return refs.length ? pass("Uptime monitoring is configured in code.", refs) : unknown("Uptime monitors live outside the repo — confirm one exists.");
+      return refs.length ? pass("Uptime monitoring is configured in code.", refs) : unknown("Uptime monitors live outside the repo. Confirm one exists.");
     },
   },
 
@@ -439,7 +439,7 @@ export const PRODUCTION_CHECKS: CheckDef[] = [
     title: "Data access separated from UI components",
     when: (ctx) => ctx.type.hasFrontend,
     priority: "should",
-    relevance: "When every component queries the database itself, the same logic is copied everywhere, and changing a table means hunting through dozens of files — the root of \"patch-work\" codebases.",
+    relevance: "When every component queries the database itself, the same logic is copied everywhere, and changing a table means hunting through dozens of files. That's the root of \"patch-work\" codebases.",
     howTo: "Move queries into `src/services/` (or `lib/data/`) functions, wrap them in hooks (`useProjects()` with TanStack Query), and keep components purely presentational.",
     evaluate(ctx) {
       const n = ctx.structure.dataAccessInUi.length;

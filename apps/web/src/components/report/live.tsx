@@ -34,11 +34,11 @@ export function LivePanel({ live }: { live: LiveProbe }) {
           <p className="mt-1 line-clamp-2 text-[13px] text-muted">{h?.description ?? "(no meta description, so Google picks random text from the page)"}</p>
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-          <Stat k="Unknown URL returns" v={live.notFound ? `HTTP ${live.notFound.status}` : "—"} ok={live.notFound?.status === 404} />
-          <Stat k="robots.txt" v={live.robots ? `HTTP ${live.robots.status}` : "—"} ok={live.robots?.status === 200} />
-          <Stat k="sitemap.xml" v={live.sitemap ? `HTTP ${live.sitemap.status}` : "—"} ok={live.sitemap?.status === 200} />
-          <Stat k="Images missing alt" v={h ? `${h.imgWithoutAlt} / ${h.imgTotal}` : "—"} ok={h?.imgWithoutAlt === 0} />
-          <Stat k="Blocking scripts" v={h ? String(h.blockingScripts) : "—"} ok={h?.blockingScripts === 0} />
+          <Stat k="Unknown URL returns" v={live.notFound ? `HTTP ${live.notFound.status}` : "n/a"} ok={live.notFound?.status === 404} />
+          <Stat k="robots.txt" v={live.robots ? `HTTP ${live.robots.status}` : "n/a"} ok={live.robots?.status === 200} />
+          <Stat k="sitemap.xml" v={live.sitemap ? `HTTP ${live.sitemap.status}` : "n/a"} ok={live.sitemap?.status === 200} />
+          <Stat k="Images missing alt" v={h ? `${h.imgWithoutAlt} / ${h.imgTotal}` : "n/a"} ok={h?.imgWithoutAlt === 0} />
+          <Stat k="Blocking scripts" v={h ? String(h.blockingScripts) : "n/a"} ok={h?.blockingScripts === 0} />
           <Stat k="Structured data" v={h?.jsonLdTypes.length ? h.jsonLdTypes.slice(0, 2).join(", ") : "none"} ok={!!h?.jsonLdTypes.length} />
         </dl>
       </div>

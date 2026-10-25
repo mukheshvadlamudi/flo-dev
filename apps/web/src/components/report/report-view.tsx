@@ -19,7 +19,7 @@ function fallbackVerdict(r: AuditReport): string {
   const crit = r.findings.filter((f) => f.severity === "critical");
   const high = r.findings.filter((f) => f.severity === "high");
   const blockers = r.checklist.filter((c) => c.priority === "must" && c.status === "fail");
-  if (crit.length) return `Not ready for real users yet. ${crit.length} critical issue${crit.length > 1 ? "s" : ""} could leak data or money — start with "${crit[0]!.title}". After that, ${blockers.length} launch blocker${blockers.length === 1 ? "" : "s"} remain on the checklist.`;
+  if (crit.length) return `Not ready for real users yet. ${crit.length} critical issue${crit.length > 1 ? "s" : ""} could leak data or money. Start with "${crit[0]!.title}". After that, ${blockers.length} launch blocker${blockers.length === 1 ? "" : "s"} remain on the checklist.`;
   if (high.length) return `Close, but ${high.length} high-severity issue${high.length > 1 ? "s" : ""} need fixing before launch, beginning with "${high[0]!.title}".`;
   if (blockers.length) return `No serious vulnerabilities found. ${blockers.length} launch blocker${blockers.length === 1 ? "" : "s"} left on the checklist, starting with "${blockers[0]!.title}".`;
   return "In good shape. Work through the first-month items to harden it before you scale.";

@@ -53,7 +53,7 @@ export const emptyCatch: Rule = {
   severity: "medium",
   category: "reliability",
   why: "Empty catch blocks hide failures. Payments, sign-ups or saves can fail with no log, no alert and no message to the user.",
-  fix: "Log the error with context, report it to Sentry (or similar), and show the user what happened. Only swallow errors you have decided are safe to ignore — and comment why.",
+  fix: "Log the error with context, report it to Sentry (or similar), and show the user what happened. Only swallow errors you have decided are safe to ignore, and comment why.",
   check(project) {
     const hits: RuleHit[] = [];
     for (const f of project.files) {
@@ -72,7 +72,7 @@ export const indexAsKey: Rule = {
   title: "List rendered with the array index as `key`",
   severity: "low",
   category: "bug",
-  why: "When items are added, removed or re-ordered, React reuses the wrong component state — inputs show the wrong value, animations jump.",
+  why: "When items are added, removed or re-ordered, React reuses the wrong component state: inputs show the wrong value, animations jump.",
   fix: "Use a stable id from the data (`key={item.id}`).",
   check: (p) => scanLines(p, /key=\{\s*(i|idx|index)\s*\}/, { files: (f) => /\.(jsx|tsx)$/.test(f.path) }),
 };

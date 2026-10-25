@@ -60,7 +60,7 @@ export const permissivePolicy: Rule = {
         hits.push({
           ...hitAt(f, m.index ?? 0),
           severity: readOnly ? "medium" : "high",
-          title: readOnly ? "Public read policy (`using (true)`) — confirm this data is meant to be public" : "Write policy allows anyone (`true`)",
+          title: readOnly ? "Public read policy (`using (true)`). Confirm this data is meant to be public" : "Write policy allows anyone (`true`)",
         });
       }
     }
@@ -134,7 +134,7 @@ export const massAssignment: Rule = {
   title: "Request body written straight into the database",
   severity: "high",
   category: "security",
-  why: "Passing the whole request body to insert/update lets a user set fields you never meant them to — `role`, `is_admin`, `credits`, `user_id` of someone else.",
+  why: "Passing the whole request body to insert/update lets a user set fields you never meant them to, like `role`, `is_admin`, `credits`, `user_id` of someone else.",
   fix: "Validate the body with a schema (zod, valibot, pydantic) and copy only the allowed fields. Set `user_id` from the authenticated session, never from the client.",
   check(project) {
     return scanLines(
@@ -149,7 +149,7 @@ export const sqlInjection: Rule = {
   title: "SQL built with string interpolation",
   severity: "critical",
   category: "security",
-  why: "Interpolating user input into SQL lets an attacker change the query — dumping tables, bypassing login or dropping data.",
+  why: "Interpolating user input into SQL lets an attacker change the query: dumping tables, bypassing login or dropping data.",
   fix: "Use parameterised queries (`$1` placeholders, Prisma `$queryRaw` tagged templates, Drizzle `sql` templates). Never use `$queryRawUnsafe`/`sql.unsafe` with user input.",
   references: ["https://owasp.org/Top10/A03_2021-Injection/"],
   check(project) {
@@ -183,7 +183,7 @@ export const clientSidePrivilege: Rule = {
   severity: "critical",
   category: "security",
   why: "If the frontend can set `is_paid`, `plan`, `credits` or `role`, so can anyone with DevTools. This is how paywalls in vibe-coded apps get bypassed.",
-  fix: "Only change these fields from trusted server code — e.g. a verified Stripe webhook or an Edge Function — and add an RLS policy or column privilege that blocks the client from updating them.",
+  fix: "Only change these fields from trusted server code (a verified Stripe webhook or an Edge Function), and add an RLS policy or column privilege that blocks the client from updating them.",
   check(project) {
     return scanLines(
       project,

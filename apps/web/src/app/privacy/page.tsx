@@ -11,7 +11,7 @@ export default function Privacy() {
       <ul>
         <li>We clone your repository read-only into a temporary folder, analyse it, and delete the clone as soon as the scan finishes.</li>
         <li>GitHub tokens you provide are used once to clone and are never written to disk or logs.</li>
-        <li>Reports store file paths, line numbers and short redacted snippets — never the secrets themselves.</li>
+        <li>Reports store file paths, line numbers and short redacted snippets, never the secrets themselves.</li>
         <li>If an Anthropic API key is configured, a summary of the findings and short excerpts of configuration files are sent to Anthropic to generate architecture advice. Anthropic does not train on API data by default.</li>
       </ul>
       <h2>Live site checks</h2>

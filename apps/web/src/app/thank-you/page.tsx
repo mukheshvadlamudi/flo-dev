@@ -2,7 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
 import { SITE } from "@/lib/site";
 
-export const metadata = { title: "Thanks — we'll be in touch", robots: { index: false } };
+export const metadata = { title: "Thanks, we'll be in touch", robots: { index: false } };
 
 export default function ThankYou() {
   return (

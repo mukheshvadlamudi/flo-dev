@@ -55,7 +55,7 @@ export const unauthenticatedWriteRoute: Rule = {
   title: "API route changes data without checking who is calling",
   severity: "high",
   category: "security",
-  why: "A server route that writes to the database without verifying the session can be called by anyone with curl — often with a service-role client that skips RLS entirely.",
+  why: "A server route that writes to the database without verifying the session can be called by anyone with curl, often with a service-role client that skips RLS entirely.",
   fix: "Authenticate at the top of every handler (e.g. `const { data: { user } } = await supabase.auth.getUser()` / `auth()` / `getServerSession()`), return 401 when missing, and scope the write to that user. Put this in shared middleware so new routes are protected by default.",
   check(project) {
     const hits: RuleHit[] = [];

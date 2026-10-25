@@ -81,12 +81,12 @@ export const WEB_CHECKS: CheckDef[] = [
       if (files.length) return pass(`Found a dedicated 404 page (${files[0]!.file}).`, files);
       const routes = grep(ctx, /path=["']\*["']|path:\s*["'](\*|\/:pathMatch\(\.\*\)\*)["']|<Route\s+path=["']\*["']/, UI_FILE);
       if (routes.length) return pass("A catch-all route renders a not-found screen.", routes);
-      return fail("No 404 page or catch-all route found — unknown URLs show the host's default error or a blank page.");
+      return fail("No 404 page or catch-all route found, so unknown URLs show the host's default error or a blank page.");
     },
     live(probe, code) {
       if (!probe.notFound) return undefined;
       if (probe.notFound.status === 404) return probe.notFound.customPage ? pass("The live site returns HTTP 404 with a custom page for unknown URLs.") : warn("The live site returns 404 but with the host's default page.");
-      return { status: "warn", evidence: `Unknown URLs return HTTP ${probe.notFound.status} (a "soft 404") — search engines may index error pages.${code.status === "pass" ? " The page exists in code but the status code is wrong." : ""}`, refs: code.refs };
+      return { status: "warn", evidence: `Unknown URLs return HTTP ${probe.notFound.status} (a "soft 404"), so search engines may index error pages.${code.status === "pass" ? " The page exists in code but the status code is wrong." : ""}`, refs: code.refs };
     },
   },
   {
@@ -144,7 +144,7 @@ export const WEB_CHECKS: CheckDef[] = [
     relevance: "The page title is the blue link in Google results. If every page shares one title, Google can't tell them apart and click-through drops.",
     howTo: (ctx) =>
       ctx.stack.frameworks.includes("Next.js")
-        ? "Export `metadata` (or `generateMetadata`) from every `page.tsx`, and use a template in the root layout: `title: { template: '%s · Brand', default: 'Brand — what you do' }`."
+        ? "Export `metadata` (or `generateMetadata`) from every `page.tsx`, and use a template in the root layout: `title: { template: '%s · Brand', default: 'Brand: what you do' }`."
         : "This is a single-page app, so every route shares index.html's title. Set a title per route with `react-helmet-async` (`<Helmet><title>…</title></Helmet>`) or migrate marketing pages to a framework that pre-renders HTML (Next.js, Astro) so crawlers see each title.",
     evaluate(ctx) {
       const titles = collectTitles(ctx);
@@ -181,7 +181,7 @@ export const WEB_CHECKS: CheckDef[] = [
     title: "Meta descriptions",
     appliesTo: WEB_KINDS,
     priority: "should",
-    relevance: "The description is the grey snippet under your link in search results — it's your ad copy. Without it Google picks random text from the page.",
+    relevance: "The description is the grey snippet under your link in search results. It's your ad copy. Without it Google picks random text from the page.",
     howTo: "Write a 140–160 character description per page that says who it's for and the outcome, e.g. `description: 'Same-day dental appointments in Pune. Book online in 60 seconds.'`.",
     evaluate(ctx) {
       const refs = grep(ctx, /<meta\s+name=["']description["']|(?:^|[{,\s])description\s*:\s*["'`][^"'`]{20,}|<Helmet[\s\S]*description|name:\s*["']description["']/, (f) => UI_FILE(f) || /\.(t|j)s$/.test(f.path), 8);
@@ -251,7 +251,7 @@ export const WEB_CHECKS: CheckDef[] = [
       }
       const empty = grepCount(ctx, /<(img|Image)\b[^>]*alt=["']{2}/, UI_FILE);
       if (missing.length) return fail(`${missing.length} of ${plural(total, "image")} have no alt attribute.`, missing.slice(0, 5));
-      if (empty > total / 2) return warn(`${empty} of ${total} images use an empty alt — fine for decoration, not for content images.`);
+      if (empty > total / 2) return warn(`${empty} of ${total} images use an empty alt. That's fine for decoration, not for content images.`);
       return pass(`All ${plural(total, "image")} have alt text.`);
     },
     live(probe, code) {
@@ -278,7 +278,7 @@ export const WEB_CHECKS: CheckDef[] = [
       const pages = pageCount(ctx);
       if (targets.size >= 5) return pass(`${plural(targets.size, "internal link target")} found (e.g. ${[...targets].slice(0, 3).join(", ")}).`);
       if (targets.size === 0 && anchors > 0) return fail(`The site is a single page that only links to #sections (${plural(anchors, "anchor link")}). Each service deserves its own indexable page.`);
-      if (pages <= 1) return warn("Only one page found — create pages for each service, location or use-case and link them together.");
+      if (pages <= 1) return warn("Only one page found. Create pages for each service, location or use-case and link them together.");
       return warn(`Only ${plural(targets.size, "internal link target")} across ${plural(pages, "page")}.`);
     },
     live(probe, code) {
@@ -317,7 +317,7 @@ export const WEB_CHECKS: CheckDef[] = [
     live(probe) {
       if (!probe.html) return undefined;
       const t = probe.html.jsonLdTypes;
-      return t.some((x) => /LocalBusiness|Dentist|Restaurant|Clinic|Physician|Plumber|Store|Service|Salon|Agent/.test(x)) ? pass(`Live page exposes JSON-LD: ${t.join(", ")}.`) : fail(t.length ? `Live JSON-LD types: ${t.join(", ")} — no LocalBusiness.` : "The live page has no JSON-LD.");
+      return t.some((x) => /LocalBusiness|Dentist|Restaurant|Clinic|Physician|Plumber|Store|Service|Salon|Agent/.test(x)) ? pass(`Live page exposes JSON-LD: ${t.join(", ")}.`) : fail(t.length ? `Live JSON-LD types: ${t.join(", ")}, but no LocalBusiness.` : "The live page has no JSON-LD.");
     },
   },
   {
@@ -378,7 +378,7 @@ export const WEB_CHECKS: CheckDef[] = [
       const refs = grep(ctx, /(fixed|sticky)[^"'`]*bottom-0[^"'`]*(md|lg|sm):hidden|(md|lg|sm):hidden[^"'`]*(fixed|sticky)[^"'`]*bottom-0|position:\s*(fixed|sticky)[^}]*bottom:\s*0/, UI_FILE);
       if (refs.length) return pass("A mobile-only fixed bottom bar exists.", refs);
       const fixedBottom = grep(ctx, /(fixed|sticky)[^"'`]*bottom-(0|4)/, UI_FILE);
-      if (fixedBottom.length) return warn("A fixed bottom element exists, but it isn't mobile-only — check it's a CTA, not just a toast.", fixedBottom);
+      if (fixedBottom.length) return warn("A fixed bottom element exists, but it isn't mobile-only. Check it's a CTA, not just a toast.", fixedBottom);
       return fail("No sticky CTA for mobile visitors.");
     },
   },
@@ -396,7 +396,7 @@ export const WEB_CHECKS: CheckDef[] = [
       const r = grep(ctx, /(navigate|push|redirect|href\s*=|location\.href\s*=)\(?\s*["'`]\/(thank|thanks|success|confirmation)/i, UI_FILE);
       if (p.length || r.length) return pass("Forms lead to a thank-you / confirmation page.", [...p, ...r]);
       const toast = grep(ctx, /toast\(|alert\(|setSubmitted\(true\)|isSubmitted/i, UI_FILE, 3);
-      return toast.length ? warn("Submissions only show a toast/inline message — there's no trackable thank-you URL.", toast) : fail("No confirmation after form submit was found.");
+      return toast.length ? warn("Submissions only show a toast/inline message, so there's no trackable thank-you URL.", toast) : fail("No confirmation after form submit was found.");
     },
   },
   {
@@ -418,7 +418,7 @@ export const WEB_CHECKS: CheckDef[] = [
     title: "Case study / results section",
     appliesTo: ["local-business", "marketing-site", "saas-app"],
     priority: (ctx) => (has(ctx, "saas-app") && !has(ctx, "marketing-site") ? "later" : "should"),
-    relevance: "Case studies with real numbers (\"cut no-shows 38%\") are the strongest proof you can do the job — stronger than any feature list.",
+    relevance: "Case studies with real numbers (\"cut no-shows 38%\") are the strongest proof you can do the job, stronger than any feature list.",
     howTo: "Add 2–3 short case studies: the client, the problem, what you did, and a measurable result with a photo or logo. Give each its own page for SEO.",
     evaluate(ctx) {
       const refs = [...paths(ctx, /case-?stud|success-?stor|portfolio|our-?work|projects?\//i), ...grep(ctx, /case stud(y|ies)|success stor(y|ies)|our work|client results|before (&|and) after/i, UI_FILE)];
@@ -431,7 +431,7 @@ export const WEB_CHECKS: CheckDef[] = [
     title: "Real customer reviews",
     appliesTo: ["local-business", "marketing-site", "saas-app", "ecommerce"],
     priority: "must",
-    relevance: "Visitors check reviews before they enquire. AI builders fill sites with invented testimonials (\"Sarah Johnson, CEO\") — visitors spot them, and fake reviews break FTC/ASCI rules.",
+    relevance: "Visitors check reviews before they enquire. AI builders fill sites with invented testimonials (\"Sarah Johnson, CEO\"). Visitors spot them, and fake reviews break FTC/ASCI rules.",
     howTo: "Replace placeholder testimonials with real ones (name, photo, business, with permission), embed your Google reviews (e.g. via a widget or the Places API), and link to your Google Business Profile.",
     evaluate(ctx) {
       const section = grep(ctx, /testimonial|customer reviews?|what (our )?(clients|customers|patients|users) say|trustpilot|google reviews|<Review\b|reviews\s*=\s*\[|★★/i, UI_FILE, 5);
@@ -440,7 +440,7 @@ export const WEB_CHECKS: CheckDef[] = [
       if (fake.length) return fail("Testimonials look like AI/template placeholders (stock names or random avatar services).", fake);
       const embedded = dep(ctx, "react-google-reviews", "@trustpilot/*") ?? grep(ctx, /trustpilot|elfsight|google\.com\/maps\/place|places\.googleapis|reviews\.io|\.from\(["']reviews["']\)/i, ANY_FILE, 1)[0]?.file;
       if (embedded) return pass("Reviews come from a real source (embedded / database).", section);
-      return warn("Testimonials are hardcoded — make sure they're real, attributable and used with permission; consider embedding Google reviews.", section);
+      return warn("Testimonials are hardcoded. Make sure they're real, attributable and used with permission; consider embedding Google reviews.", section);
     },
   },
   {
@@ -498,7 +498,7 @@ export const WEB_CHECKS: CheckDef[] = [
     title: "Terms of service",
     appliesTo: ["saas-app", "ecommerce"],
     priority: (ctx) => (ctx.stack.payments.length ? "must" : "should"),
-    relevance: "You take sign-ups or payments. Terms set refund rules, acceptable use and liability limits — payment providers ask for them during review.",
+    relevance: "You take sign-ups or payments. Terms set refund rules, acceptable use and liability limits, and payment providers ask for them during review.",
     howTo: "Publish `/terms` (refunds, cancellation, acceptable use, liability, governing law) and link it from sign-up and checkout.",
     evaluate(ctx) {
       const p = paths(ctx, /terms|tos\b|conditions/i);

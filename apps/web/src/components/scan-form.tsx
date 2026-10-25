@@ -125,7 +125,7 @@ export function ScanForm({ compact = false }: { compact?: boolean }) {
                     ))}
                   </select>
                 </Field>
-                <Field label={`Expected users in 12 months: ${fmt(USERS[usersIdx]!)}`} hint="We size the architecture to this — no over-engineering.">
+                <Field label={`Expected users in 12 months: ${fmt(USERS[usersIdx]!)}`} hint="We size the architecture to this, so nothing is over-engineered.">
                   <input type="range" min={0} max={USERS.length - 1} value={usersIdx} onChange={(e) => setUsersIdx(Number(e.target.value))} className="h-10 w-full accent-[var(--accent)]" />
                 </Field>
                 <Field label="Team size">

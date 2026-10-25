@@ -3,11 +3,11 @@ import { Plus } from "lucide-react";
 export const FAQS = [
   {
     q: "Is it safe to connect my repository?",
-    a: "Flo clones your repo read-only into a temporary folder, analyses it and deletes it when the scan ends. Private-repo tokens are used once to clone and never stored. Any secrets we find are redacted in the report — we show the file and line, never the key.",
+    a: "Flo clones your repo read-only into a temporary folder, analyses it and deletes it when the scan ends. Private-repo tokens are used once to clone and never stored. Any secrets we find are redacted in the report. We show the file and line, never the key.",
   },
   {
     q: "What does Flo actually check?",
-    a: "Security holes (exposed keys, missing Supabase RLS, unverified payment webhooks, SQL injection, XSS), common AI-generated bugs, performance problems (N+1 queries, missing indexes, no pagination, heavy images), production basics (backups, error tracking, CI, rate limits) and — for public sites — SEO and conversion basics like titles, sitemaps, schema, reviews and a clear call-to-action.",
+    a: "Security holes (exposed keys, missing Supabase RLS, unverified payment webhooks, SQL injection, XSS), common AI-generated bugs, performance problems (N+1 queries, missing indexes, no pagination, heavy images), production basics (backups, error tracking, CI, rate limits) and, for public sites, SEO and conversion basics like titles, sitemaps, schema, reviews and a clear call-to-action.",
   },
   {
     q: "Does it work with Lovable, Bolt, Cursor and v0 projects?",
@@ -15,7 +15,7 @@ export const FAQS = [
   },
   {
     q: "Is the advice generic?",
-    a: "No. Every check reads your code and shows its evidence. Checks that don't apply are skipped (a SaaS dashboard won't be told to add a Google Map), and the architecture is sized to the users, team and budget you tell us — so a side project isn't told to buy Kubernetes.",
+    a: "No. Every check reads your code and shows its evidence. Checks that don't apply are skipped (a SaaS dashboard won't be told to add a Google Map), and the architecture is sized to the users, team and budget you tell us, so a side project isn't told to buy Kubernetes.",
   },
   {
     q: "Will it fix the problems for me?",

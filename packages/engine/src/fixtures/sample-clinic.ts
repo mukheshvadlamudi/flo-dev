@@ -132,7 +132,7 @@ export default function Index() {
   return (
     <main>
       <Hero />
-      <section id="services">{services.map((s, i) => <div key={i}>{s.name} — ₹{s.price}</div>)}</section>
+      <section id="services">{services.map((s, i) => <div key={i}>{s.name}: ₹{s.price}</div>)}</section>
       <Testimonials />
       <Faq />
       <section id="contact">
