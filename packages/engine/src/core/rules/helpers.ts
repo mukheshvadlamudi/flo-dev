@@ -8,7 +8,7 @@ export function isCode(f: SourceFile): boolean {
 }
 
 export function isTestFile(f: SourceFile): boolean {
-  return /(\.|_)(test|spec)\.[a-z]+$/.test(f.path) || /(^|\/)(__tests__|__mocks__|tests?|e2e|cypress)\//.test(f.path);
+  return /(\.|_)(test|spec)\.[a-z]+$/.test(f.path) || /(^|\/)(__tests__|__mocks__|__fixtures__|fixtures?|tests?|e2e|cypress)\//.test(f.path);
 }
 
 /** True for lines that are only a comment, so commented-out code is not reported. */

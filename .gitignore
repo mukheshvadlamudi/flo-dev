@@ -1,8 +1,10 @@
 node_modules/
 dist/
+.next/
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
 *.log
+.flo-data/
 reports/
-.flo-cache/

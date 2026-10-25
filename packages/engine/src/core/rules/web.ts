@@ -62,14 +62,16 @@ export const unauthenticatedWriteRoute: Rule = {
     for (const f of project.files) {
       if (!JS_EXT.test(f.path) || isTestFile(f) || f.clientSide || !isServerHandler(f)) continue;
       if (/webhook|cron/i.test(f.path)) continue;
-      const writes = /\.(insert|update|upsert|delete)\(|prisma\.\w+\.(create|update|upsert|delete)|\.(save|destroy|deleteOne|updateOne|insertOne)\(|db\.(insert|update|delete)\(/;
+      // Only database writes count; Map/Set .delete() and array helpers must not.
+      const writes = /\.from\([^)]*\)\s*\.(insert|update|upsert|delete)\(|prisma\.\w+\.(create|createMany|update|updateMany|upsert|delete|deleteMany)\(|\b(db|tx|knex|sql)\s*\.\s*(insert|update|delete)\(|\.(deleteOne|updateOne|insertOne|insertMany|findByIdAndUpdate|findOneAndUpdate)\(|\.collection\([^)]*\)\.(add|doc)\(|\b(setDoc|updateDoc|deleteDoc|addDoc)\(/;
       if (!writes.test(f.content)) continue;
       const authed =
         /auth\.getUser|getSession|getServerSession|auth\(\)|currentUser|getAuth|requireAuth|requireUser|withAuth|verifyIdToken|jwt\.verify|jwtVerify|clerk|authenticate|isAuthenticated|req\.user|ctx\.user|session\.user|authorization/i.test(
           f.content,
         );
       if (authed) continue;
-      const idx = f.lines.findIndex((l) => writes.test(l));
+      const at = f.content.search(writes);
+      const idx = f.content.slice(0, at).split(/\r?\n/).length - 1;
       hits.push({ file: f.path, line: idx + 1, snippet: redact(f.lines[idx] ?? ""), title: `Possibly unauthenticated write in ${f.path}` });
     }
     return hits;
@@ -116,7 +118,9 @@ export const xssHtml: Rule = {
     return hits.filter((h) => {
       const f = project.files.find((x) => x.path === h.file)!;
       const around = f.lines.slice(Math.max(0, h.line! - 3), h.line! + 3).join("\n");
-      return !/ld\+json|JSON\.stringify/.test(around);
+      // Inline <script> tags filled from a module constant (theme bootstraps etc.) carry no user input.
+      const constantScript = /<script/.test(around) && /__html:\s*[A-Za-z_$][\w$]*\s*\}/.test(around);
+      return !/ld\+json|JSON\.stringify/.test(around) && !constantScript;
     });
   },
 };
@@ -183,7 +187,10 @@ export const weakHash: Rule = {
   why: "MD5/SHA-1/plain SHA-256 are fast to brute-force. Leaked hashes become leaked passwords.",
   fix: "Let your auth provider store passwords, or use argon2id / bcrypt / scrypt with a per-user salt.",
   check(project) {
-    return scanLines(project, /createHash\(\s*["'](md5|sha1)["']|hashlib\.(md5|sha1)\(|\bmd5\(/i);
+    // Fast hashes are fine for checksums and cache keys; only flag them where passwords are handled.
+    return scanLines(project, /createHash\(\s*["'](md5|sha1|sha256)["']|hashlib\.(md5|sha1|sha256)\(|\bmd5\(/i).filter((h) =>
+      /password|passwd|pwd/i.test(project.files.find((f) => f.path === h.file)!.content),
+    );
   },
 };
 

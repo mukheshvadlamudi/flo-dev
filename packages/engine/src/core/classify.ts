@@ -43,7 +43,9 @@ export function classifyProject(project: Project, stack: Stack, override?: Proje
   if (hours > 0) signals.push("opening hours");
   if (localWords > 0) signals.push("local-service vocabulary");
   if (booking > 0) signals.push("booking / quote / enquiry CTAs");
-  score["local-business"] += (tel > 0 ? 2 : 0) + (address > 0 ? 2 : 0) + (hours > 0 ? 2 : 0) + Math.min(localWords, 3) + (booking > 0 ? 1 : 0);
+  // Vocabulary alone isn't enough (a SaaS can talk about clinics); a local business publishes how to reach it.
+  const contact = (tel > 0 ? 2 : 0) + (address > 0 ? 2 : 0) + (hours > 0 ? 2 : 0);
+  if (contact > 0) score["local-business"] += contact + Math.min(localWords, 3) + (booking > 0 ? 1 : 0);
 
   const cart = count(project, /\b(add to cart|addToCart|shopping cart|useCart|cartItems|CartProvider|shopify|medusa|woocommerce|product\.price|products\.map)\b/i);
   if (cart > 0) signals.push("cart / checkout / product catalogue");

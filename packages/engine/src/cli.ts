@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { scanProject } from "./core/scan.js";
@@ -45,7 +46,8 @@ async function main() {
     process.exit(target ? 0 : 1);
   }
 
-  const source = parseGitHubUrl(target) && !target.startsWith(".") && !target.startsWith("/") ? await cloneGitHub(target, process.env.GITHUB_TOKEN) : await resolveLocal(target);
+  // An existing local folder wins over the "owner/repo" GitHub shorthand.
+  const source = !existsSync(target) && parseGitHubUrl(target) ? await cloneGitHub(target, process.env.GITHUB_TOKEN) : await resolveLocal(target);
   try {
     const report = await scanProject({
       dir: source.dir,

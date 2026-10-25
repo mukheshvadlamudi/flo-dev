@@ -75,7 +75,7 @@ export const supabaseServiceRole: Rule = {
           hits.push({ ...hitAt(f, m.index ?? 0), title: "Supabase service_role JWT committed to the repo" });
         }
       }
-      if (f.clientSide) {
+      if (f.clientSide && !isTestFile(f)) {
         f.lines.forEach((line, i) => {
           if (isCommentLine(line)) return;
           if (/service[_-]?role/i.test(line)) {

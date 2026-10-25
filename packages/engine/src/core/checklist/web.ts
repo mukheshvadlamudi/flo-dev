@@ -25,10 +25,20 @@ const HOME_FILE = /(^|\/)((src\/)?app\/(\([^)]*\)\/)?page\.(t|j)sx|(src\/)?pages
 function homeAndHero(ctx: CheckContext): SourceFile[] {
   const home = ctx.project.files.filter((f) => HOME_FILE.test(f.path) && !f.path.startsWith("node_modules"));
   const hero = ctx.project.files.filter((f) => /(^|\/)[^/]*hero[^/]*\.(tsx|jsx|vue|svelte|astro)$/i.test(f.path));
-  return [...hero, ...home];
+  // Follow imports from the home page into CTA-ish components (ScanForm, SignupCta, HeroSection…).
+  const imported: SourceFile[] = [];
+  for (const h of home) {
+    for (const m of h.content.matchAll(/import\s+\{?\s*([\w,\s]+?)\s*\}?\s+from\s+["']([@.~][^"']+)["']/g)) {
+      if (!/hero|cta|form|signup|waitlist|book/i.test(m[1]!)) continue;
+      const base = m[2]!.split("/").pop()!.toLowerCase();
+      const file = ctx.project.files.find((f) => f.path.toLowerCase().replace(/\.(t|j)sx?$/, "").endsWith(`/${base}`) && UI_FILE(f));
+      if (file && !hero.includes(file)) imported.push(file);
+    }
+  }
+  return [...hero, ...imported, ...home];
 }
 
-const CTA_WORDS = /\b(get started|start (free|now|your)|book( a| an| now| online)?|schedule|call (us|now)|contact us|get (a|your) (free )?(quote|estimate|demo|consultation)|request (a )?(quote|demo|callback)|sign up|try (it )?(free|now)|buy now|shop now|order now|join( the)? waitlist|enquire|get in touch|talk to (us|sales)|claim)\b/i;
+const CTA_WORDS = /\b(audit my|run (a )?free|start (a )?free (trial|audit|scan)|get started|start (free|now|your)|book( a| an| now| online)?|schedule|call (us|now)|contact us|get (a|your) (free )?(quote|estimate|demo|consultation)|request (a )?(quote|demo|callback)|sign up|try (it )?(free|now)|buy now|shop now|order now|join( the)? waitlist|enquire|get in touch|talk to (us|sales)|claim)\b/i;
 
 /** Pulls `title: "…"` style strings from Next metadata, Helmet and <title> tags. */
 function collectTitles(ctx: CheckContext): { title: string; file: string; line: number }[] {
@@ -347,7 +357,7 @@ export const WEB_CHECKS: CheckDef[] = [
       const files = homeAndHero(ctx);
       if (!files.length) return unknown("Couldn't find the home page or hero component.");
       for (const f of files) {
-        const top = f.lines.slice(0, Math.min(f.lines.length, /hero/i.test(f.path) ? f.lines.length : 120));
+        const top = f.lines.slice(0, Math.min(f.lines.length, /hero/i.test(f.path) ? f.lines.length : 200));
         const idx = top.findIndex((l, i) => CTA_WORDS.test(l) && /<(Button|button|a|Link)\b|href=|onClick|>\s*[A-Z]/.test((top[i - 1] ?? "") + l));
         if (idx >= 0) return pass(`Hero has a CTA: "${top[idx]!.trim().replace(/<[^>]+>/g, "").slice(0, 60)}".`, [{ file: f.path, line: idx + 1, snippet: redact(top[idx]!) }]);
       }
@@ -424,7 +434,7 @@ export const WEB_CHECKS: CheckDef[] = [
     relevance: "Visitors check reviews before they enquire. AI builders fill sites with invented testimonials (\"Sarah Johnson, CEO\") — visitors spot them, and fake reviews break FTC/ASCI rules.",
     howTo: "Replace placeholder testimonials with real ones (name, photo, business, with permission), embed your Google reviews (e.g. via a widget or the Places API), and link to your Google Business Profile.",
     evaluate(ctx) {
-      const section = grep(ctx, /testimonial|review|what (our )?(clients|customers|patients) say|trustpilot|google reviews/i, UI_FILE, 5);
+      const section = grep(ctx, /testimonial|customer reviews?|what (our )?(clients|customers|patients|users) say|trustpilot|google reviews|<Review\b|reviews\s*=\s*\[|★★/i, UI_FILE, 5);
       if (!section.length) return fail("No reviews or testimonials on the site.");
       const fake = grep(ctx, /\b(John|Jane) (Doe|Smith)\b|Lorem ipsum|Sarah Johnson|Michael Chen|Emily (Davis|Rodriguez)|pravatar\.cc|randomuser\.me|i\.pravatar|ui-avatars\.com|placeholder\.(com|svg)/i, UI_FILE);
       if (fake.length) return fail("Testimonials look like AI/template placeholders (stock names or random avatar services).", fake);
