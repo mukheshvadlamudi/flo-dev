@@ -38,6 +38,8 @@ const SPECIAL_NAMES = new Set([
   ".env", ".env.local", ".env.production", ".env.development", ".npmrc",
 ]);
 
+const ASSET_EXT = /\.(png|jpe?g|gif|webp|avif|svg|ico|mp4|webm|mov|woff2?|ttf|otf)$/i;
+
 const MAX_FILE_BYTES = 512 * 1024;
 const MAX_FILES = 5000;
 
@@ -78,6 +80,7 @@ export async function loadProject(root: string): Promise<Project> {
   const absRoot = path.resolve(root);
   const files: SourceFile[] = [];
   const allPaths: string[] = [];
+  const assets: Project["assets"] = [];
 
   async function walk(dir: string): Promise<void> {
     if (files.length >= MAX_FILES) return;
@@ -95,6 +98,10 @@ export async function loadProject(root: string): Promise<Project> {
       }
       if (!entry.isFile()) continue;
       allPaths.push(rel);
+      if (ASSET_EXT.test(entry.name)) {
+        assets.push({ path: rel, bytes: (await stat(abs)).size });
+        continue;
+      }
       if (!wantFile(entry.name) || files.length >= MAX_FILES) continue;
       const info = await stat(abs);
       if (info.size > MAX_FILE_BYTES) continue;
@@ -111,13 +118,14 @@ export async function loadProject(root: string): Promise<Project> {
   }
 
   await walk(absRoot);
-  return buildProject(absRoot, files, allPaths);
+  return buildProject(absRoot, files, allPaths, assets);
 }
 
 /** Builds a project from in-memory files; used by tests and by uploads. */
 export function projectFromFiles(
   root: string,
   input: Record<string, string>,
+  assets: Project["assets"] = [],
 ): Project {
   const files: SourceFile[] = Object.entries(input).map(([p, content]) => ({
     path: p,
@@ -126,10 +134,10 @@ export function projectFromFiles(
     ext: path.extname(p).toLowerCase(),
     clientSide: isClientSide(p, content),
   }));
-  return buildProject(root, files, Object.keys(input));
+  return buildProject(root, files, Object.keys(input), assets);
 }
 
-function buildProject(root: string, files: SourceFile[], allPaths: string[]): Project {
+function buildProject(root: string, files: SourceFile[], allPaths: string[], assets: Project["assets"]): Project {
   const deps: Record<string, string> = {};
   let rootPkg: PackageJson | undefined;
   for (const f of files) {
@@ -143,5 +151,5 @@ function buildProject(root: string, files: SourceFile[], allPaths: string[]): Pr
     if (f.path === "package.json") rootPkg = pkg;
     Object.assign(deps, pkg.devDependencies ?? {}, pkg.dependencies ?? {});
   }
-  return { root, files, allPaths, packageJson: rootPkg, deps };
+  return { root, files, allPaths: [...allPaths, ...assets.map((a) => a.path).filter((p) => !allPaths.includes(p))], assets, packageJson: rootPkg, deps };
 }

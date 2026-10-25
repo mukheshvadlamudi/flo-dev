@@ -108,9 +108,15 @@ export const xssHtml: Rule = {
   why: "Rendering user- or AI-generated HTML without sanitising it lets attackers run scripts in your users' sessions and steal their tokens.",
   fix: "Render text instead of HTML, or sanitise with DOMPurify (`DOMPurify.sanitize(html)`) right before rendering. Add a Content-Security-Policy header as a second layer.",
   check(project) {
-    return scanLines(project, /dangerouslySetInnerHTML|\.innerHTML\s*=\s*[^"'`;]|\bv-html\s*=|\{@html\s/, {
+    const hits = scanLines(project, /dangerouslySetInnerHTML|\.innerHTML\s*=\s*[^"'`;]|\bv-html\s*=|\{@html\s/, {
       unless: /DOMPurify|sanitize/i,
       fileUnless: /DOMPurify|sanitize-html|isomorphic-dompurify/,
+    });
+    // JSON-LD script tags filled with JSON.stringify are the standard, safe use of this API.
+    return hits.filter((h) => {
+      const f = project.files.find((x) => x.path === h.file)!;
+      const around = f.lines.slice(Math.max(0, h.line! - 3), h.line! + 3).join("\n");
+      return !/ld\+json|JSON\.stringify/.test(around);
     });
   },
 };

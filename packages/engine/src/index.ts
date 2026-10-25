@@ -1,0 +1,10 @@
+export * from "./core/types.js";
+export { scanProject, DEFAULT_PROFILE, type ScanOptions } from "./core/scan.js";
+export { cloneGitHub, resolveLocal, parseGitHubUrl, type ResolvedSource } from "./core/source.js";
+export { probeLiveSite, assertPublicUrl } from "./core/live.js";
+export { loadProject, projectFromFiles } from "./core/walker.js";
+export { KIND_LABELS } from "./core/classify.js";
+export { toMarkdown } from "./core/report/markdown.js";
+export { RULES } from "./core/rules/index.js";
+export { CHECKS } from "./core/checklist/index.js";
+export { sampleClinicFiles, SAMPLE_ASSETS } from "./fixtures/sample-clinic.js";
